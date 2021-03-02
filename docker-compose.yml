@@ -1,0 +1,34 @@
+version: '2.4'
+services:
+  api-db:
+    image: postgres:13.2
+    container_name: api-db
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=api
+      - POSTGRES_PASSWORD=pwd
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -d db -U api']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - '5432:5432'
+
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_HOST=api-db
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=db
+      - POSTGRES_USER=api
+      - POSTGRES_PASSWORD=pwd
+      - PORT=3000
+    depends_on:
+      api-db:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
